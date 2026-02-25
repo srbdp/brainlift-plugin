@@ -1,0 +1,8 @@
+{
+  "name": "brainlift-plugin",
+  "version": "1.0.0",
+  "description": "Add new sources to existing BrainLifts — guided DOK extraction and impact assessment",
+  "author": {
+    "name": "Ben Pizzacalla"
+  }
+}
