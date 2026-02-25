@@ -85,9 +85,9 @@ DOK2 - Knowledge Tree
 ## Command Usage
 
 ```
-/brainlift-plugin:bl-update https://x.com/user/status/123 This challenges my thinking on X
-/brainlift-plugin:bl-update https://example.com/article
-/brainlift-plugin:bl-update
+/bl:update https://x.com/user/status/123 This challenges my thinking on X
+/bl:update https://example.com/article
+/bl:update
 ```
 
 ---

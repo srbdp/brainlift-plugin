@@ -14,7 +14,7 @@ cp -r brainlift-plugin ~/.claude/plugins/brainlift-plugin
 
 ## Skill
 
-### `/brainlift-plugin:bl-update <url> [your thoughts]`
+### `/bl:update <url> [your thoughts]`
 
 Add a new source to an existing BrainLift. Guides you through a 6-phase interview:
 
@@ -28,9 +28,9 @@ Add a new source to an existing BrainLift. Guides you through a 6-phase intervie
 ### Examples
 
 ```bash
-/brainlift-plugin:bl-update https://x.com/user/status/123 This challenges my thinking on X
-/brainlift-plugin:bl-update https://example.com/article
-/brainlift-plugin:bl-update
+/bl:update https://x.com/user/status/123 This challenges my thinking on X
+/bl:update https://example.com/article
+/bl:update
 ```
 
 ## Agents
@@ -55,7 +55,7 @@ brainlift-plugin/
 ├── .claude-plugin/
 │   └── plugin.json              # Plugin manifest
 ├── skills/
-│   └── bl-update/
+│   └── update/
 │       └── SKILL.md             # Source → BrainLift update workflow
 ├── agents/
 │   ├── content-fetcher.md       # URL type detection + content fetching
