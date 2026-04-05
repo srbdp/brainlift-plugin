@@ -1,68 +1,62 @@
-# BrainLift Update Plugin
+# bl — BrainLift Plugin (v2.0.0)
 
-A focused Claude Code plugin for adding new sources to existing BrainLifts — guided DOK extraction and impact assessment.
+Technical reference for the `bl` Claude Code plugin. For usage guide and examples, see the [root README](../../README.md).
 
-## Installation
+## Skills
 
-```bash
-# Use directly from the plugin directory
-claude --plugin-dir ./brainlift-plugin
-
-# Or install as a shared plugin
-cp -r brainlift-plugin ~/.claude/plugins/brainlift-plugin
-```
-
-## Skill
-
-### `/bl:update <url> [your thoughts]`
-
-Add a new source to an existing BrainLift. Guides you through a 6-phase interview:
-
-1. **Ingest** — Paste a URL (tweet, article, video, PDF) + optional thoughts. Content is fetched automatically.
-2. **Route** — Finds your BrainLift files, matches the source to a BrainLift's Purpose/scope, you pick which one.
-3. **Extract DOK1** — AI extracts facts from the source. You curate which to keep.
-4. **Place & DOK2** — Suggests a Knowledge Tree category. Provides a DOK2 strawman for you to react against (you must write your own).
-5. **DOK3/DOK4 Impact** — Shows existing insights/SPOVs, asks structured questions about support/contradiction/nuance. Guides you through writing any updates.
-6. **Apply & Commit** — Previews changes, applies edits, git commits.
-
-### Examples
-
-```bash
-/bl:update https://x.com/user/status/123 This challenges my thinking on X
-/bl:update https://example.com/article
-/bl:update
-```
+| Skill | Description | Phases |
+|-------|-------------|--------|
+| `/bl:update <url> [thoughts]` | Add a source to a BrainLift | 6: Ingest → Route → Extract DOK1 → Place & DOK2 → Impact Assessment → Apply |
+| `/bl:query [question]` | Query BrainLift knowledge, compound explorations | 4: Route → Evidence Search → Synthesize → Compound |
+| `/bl:lint [path]` | Health-check with scored report | 3: Parse & Analyze → Report → Action Plan |
 
 ## Agents
 
-| Agent | Purpose | Tools |
-|-------|---------|-------|
-| `content-fetcher` | Detect URL type and fetch structured content (tweets, articles, videos, PDFs) | WebFetch, WebSearch |
-| `dok-extractor` | Extract DOK1 facts and DOK2 summaries from a source | WebFetch, Read |
+| Agent | Role | Tools | Used By |
+|-------|------|-------|---------|
+| `content-fetcher` | URL type detection + content extraction (tweets via FxTwitter API, articles, YouTube, PDFs) | WebFetch, WebSearch | update |
+| `dok-extractor` | DOK1 fact extraction, DOK2 summary generation, cross-source DOK3 brainstorming | WebFetch, Read | update |
+| `brainlift-reader` | Parse BrainLift `.md` files into structured sections with fuzzy header matching | Read, Glob | query, lint |
+| `evidence-auditor` | 27-check health analysis across 6 weighted categories, scored 0-100 | Read | lint |
 
-## How It Works
+## Audit Categories (evidence-auditor)
 
-The plugin enforces BrainLift bright lines throughout:
+| Category | Weight | What's Checked |
+|----------|--------|---------------|
+| Evidence Chain | 25% | DOK4→DOK3→DOK1-2 support hierarchy, single-source insights, unsupported claims |
+| Token Health | 15% | DOK3-4 token count vs thresholds (peak <1000, functional <2500, danger >5000) |
+| Semantic Quality | 20% | SPOV narrative flow, semantic distance, hedging language, obvious insights |
+| Freshness | 15% | Source age, dated claims, all-stale categories |
+| Structural | 10% | Missing URLs/DOK1/DOK2, empty Initial Insights, KT needing refactoring |
+| Completeness | 15% | Untracked experts, echo chamber, missing qualifications, no blueprints |
 
-- **AI extracts DOK1** (mechanical work) — allowed
-- **You write DOK2-4** (synthesis, insights, SPOVs) — enforced
-- **Evidence chains checked** before applying changes (DOK4 needs 2+ DOK3s, DOK3 needs DOK1-2)
+## AI/Human Division of Labor
 
-## Plugin Structure
+**AI generates**: DOK1 extraction, DOK2 summaries, DOK3/4 brainstorm candidates (with evidence citations), category summaries, formatting, log entries, health reports.
+
+**Human curates**: Which facts to keep, DOK2 review/edit, DOK3/4 accept/edit/reject, what to include/exclude, structural decisions, all final approvals.
+
+DOK3/4 brainstorms are framed as exploratory ("here's what I'm seeing — what resonates?"), not prescriptive.
+
+## Change Log System
+
+Each BrainLift gets a sibling `[name].log.md` file. Append-only, parseable with `grep "^## \[" file.log.md`. Action types: `ingest`, `revise-dok3`, `revise-dok4`, `add-expert`, `refactor-kt`, `lint`, `query`, `replace-source`. See `infrastructure/log-format.md` for full spec.
+
+## File Structure
 
 ```
-brainlift-plugin/
-├── .claude-plugin/
-│   └── plugin.json              # Plugin manifest
+plugins/bl/
+├── .claude-plugin/plugin.json
 ├── skills/
-│   └── update/
-│       └── SKILL.md             # Source → BrainLift update workflow
+│   ├── update/SKILL.md
+│   ├── query/SKILL.md
+│   └── lint/SKILL.md
 ├── agents/
-│   ├── content-fetcher.md       # URL type detection + content fetching
-│   └── dok-extractor.md         # DOK1 fact extraction from sources
+│   ├── content-fetcher.md
+│   ├── dok-extractor.md
+│   ├── brainlift-reader.md
+│   └── evidence-auditor.md
+├── infrastructure/
+│   └── log-format.md
 └── README.md
 ```
-
-## License
-
-MIT

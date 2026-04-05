@@ -1,7 +1,7 @@
 {
   "name": "bl",
-  "version": "1.0.0",
-  "description": "Add new sources to existing BrainLifts — guided DOK extraction and impact assessment",
+  "version": "2.0.0",
+  "description": "BrainLift maintenance toolkit — add sources, query knowledge, audit health",
   "author": {
     "name": "Ben Pizzacalla"
   }

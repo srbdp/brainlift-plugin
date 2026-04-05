@@ -5,18 +5,42 @@ argument-hint: <url> [your thoughts about this content]
 
 You're helping the user add new content to an existing BrainLift. This is the core BrainMaxxing workflow: ingest a source, extract knowledge, and update the BrainLift through a guided interview.
 
-## Core BrainLifting Rules
+## Philosophy (v2)
+
+Inspired by Karpathy's LLM Wiki pattern: a single source ingest should ripple across the BrainLift — updating summaries, flagging cross-references, suggesting insights. The LLM handles all bookkeeping so the human can focus on curation decisions.
+
+**Relaxed bright lines**: AI generates DOK2 directly (not as a strawman). AI brainstorms DOK3/4 suggestions with evidence, framed as brainstorming. Human curates — accepts, edits, or rejects everything. The learning happens through curation decisions, not the mechanical act of writing.
+
+## Core Rules
 
 ### DOK Framework
-- **DOK1 (Facts)**: Objective, verifiable information directly from sources. 2-3 sentences each. AI can extract these.
-- **DOK2 (Summary)**: Synthesis of multiple DOK1s from a single source. Objective, pattern-identifying. 2-3 sentences each.
-- **DOK3 (Insights)**: Surprising, contrarian patterns synthesized across multiple sources. Subjective. Must be supported by DOK1-2.
-- **DOK4 (SPOV)**: Spiky Points of View - expert positions on disputed topics. Must be supported by 2+ DOK3 insights. Short, assertive statements.
+- **DOK1 (Facts)**: Objective, verifiable information directly from sources. 2-3 sentences each. AI extracts these.
+- **DOK2 (Summary)**: Synthesis of multiple DOK1s from a single source. Objective, pattern-identifying. 2-3 sentences each. AI generates these; human reviews/edits.
+- **DOK3 (Insights)**: Surprising, contrarian patterns synthesized across multiple sources. Subjective. AI brainstorms candidates with evidence; human accepts/edits/rejects.
+- **DOK4 (SPOV)**: Spiky Points of View - expert positions on disputed topics. Must be supported by 2+ DOK3 insights. AI brainstorms candidates; human decides.
 
-### Bright Lines
-1. **DOK1-2 vs DOK3-4**: DOK1-2 are objective (external world), DOK3-4 are subjective (owner's expertise)
-2. **DOK1 vs DOK2**: No learning in DOK1 extraction (AI can do it). Learning begins at DOK2+ (human must write)
-3. **BrainLift vs BrainMaxxing**: Humans curate their own BrainLift. No automation or copy-paste.
+### What AI Does vs. What Human Does
+
+**AI handles** (bookkeeping & drafting):
+- Content fetching and type detection
+- DOK1 fact extraction
+- DOK2 summary generation (full, not strawman)
+- DOK3/4 brainstorming with evidence citations
+- BrainLift routing and category suggestion
+- Category summary updates
+- Expert detection and formatting
+- Cross-category relevance flagging
+- Source replacement analysis
+- Formatting and file editing
+- Git operations and log entries
+
+**Human handles** (curation & direction):
+- Selecting which DOK1 facts to include
+- Reviewing/editing AI-generated DOK2
+- Accepting/editing/rejecting brainstormed DOK3/4
+- Deciding what to include/exclude
+- Knowledge Tree curation decisions
+- Reading original sources
 
 ### Evidence Chain
 - DOK4 requires 2+ DOK3 insights (else empty claim)
@@ -24,8 +48,6 @@ You're helping the user add new content to an existing BrainLift. This is the co
 - DOK2 requires DOK1 facts (else unsupported summary)
 
 ### BrainLift File Structure
-
-Canonical top-to-bottom layout of a BrainLift file. The skill must respect this order when inserting content.
 
 ```
 Owner(s)
@@ -46,17 +68,6 @@ DOK2 - Knowledge Tree
 ───────────────────────────────────
 ```
 
-**Section details relevant to updates:**
-
-- **Purpose**: 1 sentence In Scope, 1 sentence Out of Scope. Used to route sources to the right BrainLift.
-- **DOK4 - SPOV**: Short assertive statements. Assertions, not explanations. These are the lens through which the owner reads and summarizes new sources.
-- **DOK3 - Insights**: Contrarian, surprising, cross-source synthesis. 2-3 sentences each.
-- **DOK3 - Blueprints**: Structured directives that operationalize insights. Include: domain context, actions (with judgment calls), tools/systems, boundaries, QC/definition of done. Think: recipes, playbooks, SOPs. A new source might trigger a new or revised Blueprint.
-- **Experts**: People/orgs that produce valuable sources. Organized into categories when list grows. Each entry: Who, Focus, Why Follow, Where.
-- **Knowledge Tree**: Subdivides external knowledge by sub-topic. Can be flat or hierarchical. Categorizing and summarizing sources is itself DOK2 work. Should be refactored as DOK3-4 evolve.
-  - Each source must have: DOK1 facts, owner's DOK2 summary, link to original
-  - DOK2 summaries are written through the lens of existing DOK4 SPOVs (when they exist). Before SPOVs, summaries are generic.
-
 ### Token Optimization
 - Peak power: 500-1000 tokens for DOK3-4
 - Functional range: 2000-2500 tokens
@@ -69,7 +80,7 @@ DOK2 - Knowledge Tree
 **[Source Title] - [Author] ([Date])**
 
 **DOK2 - Summary**
-- [Why valuable? Main contribution?]
+- [AI-generated summary — why valuable, main contribution]
 
 **DOK1 - Facts**
 - **[Concept]**: [2-3 sentence technical description]
@@ -77,7 +88,7 @@ DOK2 - Knowledge Tree
 [8-10 facts]
 
 **Initial Insights**
-- [User's early synthesis - left blank for user to fill]
+- [Early synthesis — left for user to fill after reading]
 
 [Source URL]
 ```
@@ -162,7 +173,7 @@ Note any user thoughts provided in $ARGUMENTS - these inform later phases.
 **If this is the first time**: Ask the user for the path to their BrainLift files directory.
 
 **Find candidate BrainLifts**:
-1. Use Glob to find `*.md` files in the BrainLift directory
+1. Use Glob to find `*.md` files in the BrainLift directory (exclude `*.log.md`)
 2. Read each file's opening section to extract **Purpose** (In Scope / Out of Scope)
 3. Score content relevance against each BrainLift's scope
 4. Present ranked matches:
@@ -187,17 +198,18 @@ Which BrainLift should this go into?
 - Existing DOK3 Insights
 - Existing DOK4 SPOVs
 - Current experts list
+- Existing DOK1-2 from other sources (for DOK3 brainstorming)
 
 ---
 
 ### Phase 3: DOK1 Extraction
 
-Spawn a dok-extractor agent to extract facts from the source:
+Spawn a dok-extractor agent with the existing BrainLift context:
 
 ```
 Task(
   subagent_type: "dok-extractor",
-  description: "Extract DOK1-2 from source",
+  description: "Extract DOK1-2 and brainstorm DOK3",
   prompt: "You are a dok-extractor agent.
 
   Source URL: [URL]
@@ -210,17 +222,19 @@ Task(
   - In Scope: [from selected BrainLift]
   - Out of Scope: [from selected BrainLift]
 
+  Existing DOK4 SPOVs:
+  [list current SPOVs — write DOK2 through this lens]
+
+  Existing Knowledge Tree Summary:
+  [summarize existing sources' DOK1-2 for cross-source pattern detection]
+
   Extract:
   - 8-10 DOK1 facts (2-3 sentences each, technical, verifiable)
   - 3-4 DOK2 patterns (2-3 sentences each, synthesizing DOK1s)
+  - Article summary (2-3 paragraphs)
+  - DOK3 brainstorm (if cross-source patterns emerge)
 
-  Format DOK1 as:
-  - **[Concept Name]**: [Detailed technical description - 2-3 sentences]
-
-  Format DOK2 as:
-  - **[Pattern Name]**: [Synthesis of multiple facts - 2-3 sentences]
-
-  Return formatted DOK1 facts and DOK2 patterns."
+  Format as complete source entry with brainstormed insights section."
 )
 ```
 
@@ -239,11 +253,11 @@ Which facts do you want to include? You can:
 - Remove facts that aren't relevant
 ```
 
-This is AI-assisted extraction - allowed by the bright lines. The user curates what goes in.
+This is AI-assisted extraction — the user curates what goes in.
 
 ---
 
-### Phase 4: Placement & DOK2 Interview
+### Phase 4: Placement & DOK2
 
 **Parse the Knowledge Tree** from the BrainLift and present categories:
 
@@ -259,28 +273,30 @@ I suggest placing this source in **[Category X]** because [reasoning].
 Or should we create a new category? Where does this fit best?
 ```
 
-**After user confirms placement**, generate a DOK2 strawman:
+**Cross-category relevance flags** (Karpathy enhancement):
+After the user confirms placement, scan the selected DOK1 facts against other Knowledge Tree categories:
+```
+Note: Some facts from this source are also relevant to **[Category Y]**:
+- "[DOK1 fact about X]" connects to sources in Category Y about [topic]
+
+This is just a flag — the source stays in [Category X]. But you might want
+to reference this connection in Category Y's summary later.
+```
+
+**Present AI-generated DOK2 summary**:
 
 ```
-Here's a strawman DOK2 summary to react against. DO NOT copy this -
-write your own version. This is just to help you think about what to include:
-
----
-STRAWMAN (react against this, don't copy):
+Here's the DOK2 summary I've written for this source:
 
 **DOK2 - Summary**
-- [AI-generated summary draft highlighting source value and key contribution]
----
+- [AI-generated summary highlighting source value, main contribution,
+  and how it relates to existing BrainLift knowledge. If SPOVs exist,
+  written through that lens.]
 
-Now write YOUR DOK2 summary. What makes this source valuable to your BrainLift?
-Why did you choose to include it? What's its main contribution?
-
-If you have SPOVs, write your summary through that lens — how does this source
-relate to your existing positions?
+Edit anything that doesn't match your understanding, or approve to continue.
 ```
 
-**CRITICAL**: The user MUST type their own DOK2 summary. This is where learning begins.
-Do NOT let them just accept the strawman. If they try to copy it, remind them of the bright line.
+The user reviews and either approves, edits, or rewrites. No "strawman" framing — this is a direct draft the user curates.
 
 ---
 
@@ -329,33 +345,79 @@ Now let's think about higher-level impact:
    (Don't just append — curate)
 ```
 
-**If user identifies DOK3 updates**:
-- Show the current insight text
-- User writes the revised version (human-only for DOK3)
-- Remind about evidence chain: "Make sure this insight is still supported by DOK1-2"
-
-**If user identifies DOK4 updates**:
-- Show the current SPOV text
-- User writes the revised version
-- Remind: "Does this SPOV still have 2+ supporting DOK3 insights?"
-
-**If user identifies a NEW DOK3 insight**:
-- Guide them to articulate it (2-3 sentences)
-- Check: "Is this synthesized from multiple sources? Which DOK1-2 evidence supports it?"
-- Remind: "A good insight should surprise you - is this non-obvious?"
-
-**Expert consideration**:
+**If the dok-extractor returned brainstormed insights**, present them now:
 ```
-Should the author of this source be added to your Experts section?
+The dok-extractor also spotted some cross-source patterns:
+
+**Brainstormed Insight**: [draft insight]
+Supporting evidence:
+- This source DOK1: "[concept]"
+- [Existing Source] DOK1: "[concept]"
+
+Does this resonate? Want to develop it further, edit it, or pass?
+```
+
+**If user identifies DOK3 updates** — AI drafts the revision:
+- For new DOK3: "Based on what you're describing, here's a draft insight — edit to match your thinking:"
+  ```
+  [2-3 sentence draft insight with evidence citations]
+
+  Supporting evidence:
+  - [Source A] DOK1: "[fact]"
+  - [Source B] DOK2: "[pattern]"
+  ```
+- For revised DOK3: "Here's your current insight revised to incorporate this new evidence:"
+  ```
+  Current: [old text]
+  Revised: [new text incorporating new evidence]
+
+  Keep, edit, or reject?
+  ```
+- Remind about evidence chain: "Make sure this insight is supported by DOK1-2"
+
+**If user identifies DOK4 updates** — AI brainstorms:
+- "This might support a new SPOV position. Here's a brainstorm:"
+  ```
+  Draft SPOV: [1 sentence assertive statement]
+
+  Would be supported by:
+  - Insight #[N]: "[snippet]"
+  - [New insight if just created]
+
+  Too early? Not spiky enough? Edit or pass.
+  ```
+- For revised DOK4: "Here's a refined version with the new nuance:"
+  ```
+  Current: [old SPOV]
+  Revised: [updated SPOV]
+  
+  Still has 2+ supporting insights? Keep, edit, or reject?
+  ```
+
+**Source replacement analysis** (Karpathy enhancement):
+When presenting question 7, add analysis:
+```
+Looking at existing sources in **[Category]**:
+
+- **[Existing Source A]**: Covers [topics]. Overlap with new source: [high/medium/low]
+  [If high]: This new source may supersede it — newer and covers similar ground.
+- **[Existing Source B]**: Covers [topics]. Overlap: low — different angle.
+
+Replace anything, or keep all?
+```
+
+**Expert detection** (Karpathy enhancement):
+```
+Should the author be added to your Experts section?
 
 Author: [name]
 Affiliation: [company/org]
 Known for: [brief description]
-
-If yes, I'll format an expert entry for you to review.
 ```
 
-If yes, format:
+Also check: "This author appears in [N] of your existing sources — strong signal for Expert inclusion" if applicable.
+
+If adding expert, format:
 ```markdown
 **[Author Name]**
 - Who: [Title and affiliation]
@@ -378,8 +440,8 @@ Here's everything that will change in your BrainLift:
 **Knowledge Tree ([Category Name]):**
 - ADD new source entry: "[Source Title] - [Author] ([Date])"
   - DOK1: [X] facts
-  - DOK2: Your summary
-  - Initial Insights: [blank - for you to fill after reading]
+  - DOK2: [AI-generated, user-approved summary]
+  - Initial Insights: [blank — fill after reading]
   - Link: [URL]
 
 **Category Summary** (if updating):
@@ -396,6 +458,9 @@ Here's everything that will change in your BrainLift:
 **Experts** (if adding):
 - ADD: [Expert Name] to [Category]
 
+**Cross-references noted:**
+- [Category Y] may want to reference [specific fact]
+
 Approve these changes?
 ```
 
@@ -404,12 +469,14 @@ Approve these changes?
 1. **Add new source entry** in the Knowledge Tree under the selected category
    - Use the Edit tool to insert at the correct position
    - Include all selected DOK1 facts
-   - Include user's DOK2 summary
-   - Leave Initial Insights blank (with TODO note for user)
+   - Include user-approved DOK2 summary
+   - Leave Initial Insights blank (with guidance text for user)
    - Include source URL
 
-2. **Update category summary** if needed
-   - Edit the existing category summary to reflect the new source
+2. **Update category summary** (Karpathy enhancement)
+   - Generate an updated category summary reflecting the new source
+   - Present for user approval before applying
+   - This is mechanical DOK2 work — AI generates, user approves
 
 3. **Update DOK3 insights** if any were revised or added
    - Edit existing insight text or insert new insights
@@ -427,52 +494,46 @@ Approve these changes?
   `"Add source: [Source Title] by [Author] to [BrainLift Topic] Knowledge Tree"`
 - **Never auto-push** - user pushes manually
 
+**Append log entry** (Karpathy enhancement):
+After successful commit, append to the companion `.log.md` file:
+```markdown
+## [YYYY-MM-DD] ingest | "[Source Title]" - [Author]
+
+- **Action**: ingest
+- **Source**: [Source Title] - [Author] ([Date])
+- **Changes**: Added to [Category] with [N] DOK1 facts. [If DOK3/4 changed: "Revised Insight #N", "Added new SPOV", etc.]
+- **Rationale**: [User's thoughts from $ARGUMENTS if provided, or brief note on why this source was added]
+```
+
+If DOK3/4 were also revised, append additional log entries for those changes.
+
 **Suggest next steps**:
 ```
 Source added! Next steps:
 - Read the original source directly (don't just rely on extraction)
 - Fill in your Initial Insights after reading
-- Review your evidence chains (do DOK3s still have DOK1-2 support?)
-- Test updated insights against other sources in your Knowledge Tree
+- Run `/bl:lint` to check your BrainLift's health
+- Use `/bl:query` to explore how this source changes your understanding
 ```
 
 ---
 
-## Important Rules
+## Error Handling
 
-### What AI Does vs. What Human Does
+- **URL fetch fails**: Ask user to paste content directly
+- **No matching BrainLift**: Ask user to specify file path manually
+- **Content is behind paywall**: Note the limitation, ask if user can paste the content
+- **BrainLift file has unexpected format**: Best-effort parsing, confirm with user before editing
+- **Log file doesn't exist**: Create it with header before appending first entry
 
-**AI-Assisted (allowed)**:
-- Content fetching and type detection
-- DOK1 fact extraction
-- DOK2 strawman generation (for reaction, not copying)
-- BrainLift routing and category suggestion
-- Formatting and file editing
-- Git operations
-
-**Human-Only (enforce bright line)**:
-- Writing DOK2 summary (must type their own)
-- Writing/revising DOK3 insights
-- Writing/revising DOK4 SPOVs
-- Deciding what to include/exclude
-- Knowledge Tree curation decisions
-- Reading original sources
-
-### Quality Checks
+## Quality Checks
 
 Before applying changes, verify:
 - [ ] DOK1 facts are specific and technical (not vague)
-- [ ] DOK2 summary is user-written (not AI strawman)
+- [ ] DOK2 summary is reviewed/approved by user
 - [ ] Source URL is included
 - [ ] Placement in Knowledge Tree makes sense
 - [ ] If DOK3 updated: evidence chain still holds
 - [ ] If DOK4 updated: still has 2+ supporting DOK3s
-- [ ] No bright line violations
-
-### Error Handling
-
-- **URL fetch fails**: Ask user to paste content directly
-- **No matching BrainLift**: Ask user to specify file path manually
-- **User tries to copy AI strawman**: Remind them of the bright line - they must write their own
-- **Content is behind paywall**: Note the limitation, ask if user can paste the content
-- **BrainLift file has unexpected format**: Best-effort parsing, confirm with user before editing
+- [ ] Category summary updated to reflect new source
+- [ ] Log entry appended
