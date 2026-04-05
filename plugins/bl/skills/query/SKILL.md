@@ -56,8 +56,14 @@ Parse `$ARGUMENTS` for the user's question.
 
 **If no question provided**: Ask the user what they want to explore.
 
+**Find BrainLift files** using the Discovery Protocol (see `infrastructure/discovery.md`):
+1. Walk up from `$CWD` looking for `CLAUDE.md` with `<!-- brainlift-root -->` marker
+2. If not found, check `~/.brainlift` pointer file for the workspace path
+3. If neither exists, ask the user for a directory path (offer to save as `~/.brainlift` for next time)
+4. Resolve lifts directory: `[root]/lifts/` if it exists, else `[root]/` as fallback
+
 **Find the right BrainLift**:
-1. Use Glob to find `*.md` files in the user's directory (exclude `*.log.md` files)
+1. Glob `[lifts_dir]/*.md` (exclude `*.log.md`)
 2. Read each file's opening to extract **Purpose** (In Scope / Out of Scope)
 3. Score relevance of the question against each BrainLift's scope
 4. Present ranked matches:
@@ -227,7 +233,7 @@ Would you like to save anything from this exploration?
 
 **After any save**: 
 1. Apply edits to the BrainLift file using Edit tool
-2. Append a log entry to the companion `.log.md` file:
+2. Append a log entry. Resolve log path per `infrastructure/log-format.md`: use `[brainlift_root]/logs/[name].log.md` if `logs/` exists, else write as sibling of the BrainLift file:
    ```markdown
    ## [YYYY-MM-DD] query | "[question summary]"
    

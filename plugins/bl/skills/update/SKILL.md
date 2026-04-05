@@ -170,10 +170,14 @@ Note any user thoughts provided in $ARGUMENTS - these inform later phases.
 
 ### Phase 2: BrainLift Routing
 
-**If this is the first time**: Ask the user for the path to their BrainLift files directory.
+**Find BrainLift files** using the Discovery Protocol (see `infrastructure/discovery.md`):
+1. Walk up from `$CWD` looking for `CLAUDE.md` with `<!-- brainlift-root -->` marker
+2. If not found, check `~/.brainlift` pointer file for the workspace path
+3. If neither exists, ask the user for a directory path (offer to save as `~/.brainlift` for next time)
+4. Resolve lifts directory: `[root]/lifts/` if it exists, else `[root]/` as fallback
 
 **Find candidate BrainLifts**:
-1. Use Glob to find `*.md` files in the BrainLift directory (exclude `*.log.md`)
+1. Glob `[lifts_dir]/*.md` (exclude `*.log.md`)
 2. Read each file's opening section to extract **Purpose** (In Scope / Out of Scope)
 3. Score content relevance against each BrainLift's scope
 4. Present ranked matches:
@@ -495,7 +499,7 @@ Approve these changes?
 - **Never auto-push** - user pushes manually
 
 **Append log entry** (Karpathy enhancement):
-After successful commit, append to the companion `.log.md` file:
+After successful commit, append to the log file. Resolve log path per `infrastructure/log-format.md`: use `[brainlift_root]/logs/[name].log.md` if `logs/` exists, else write as sibling of the BrainLift file. Create the log file if it doesn't exist yet.
 ```markdown
 ## [YYYY-MM-DD] ingest | "[Source Title]" - [Author]
 

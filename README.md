@@ -49,7 +49,51 @@ claude --plugin-dir ./brainlift-plugin/plugins/bl
 cp -r plugins/bl ~/.claude/plugins/bl
 ```
 
-After installing, the three slash commands (`/bl:update`, `/bl:query`, `/bl:lint`) will be available in any Claude Code session.
+After installing, the slash commands (`/bl:init`, `/bl:update`, `/bl:query`, `/bl:lint`) will be available in any Claude Code session.
+
+---
+
+## Getting Started
+
+### 1. Set up your workspace
+
+Navigate to the folder where you want to keep your BrainLifts and run `/bl:init`:
+
+```bash
+cd ~/brainlifts    # or wherever you want
+/bl:init
+```
+
+This creates:
+
+```
+~/brainlifts/
+├── CLAUDE.md       # Workspace config (Claude Code loads this automatically)
+├── lifts/          # Your BrainLift .md files go here
+├── logs/           # Change logs (auto-managed by the plugin)
+└── sources/        # Raw source content (optional, for URL rot insurance)
+```
+
+It also saves a pointer at `~/.brainlift` so the plugin can find your workspace from any Claude Code session — you don't have to be in the BrainLift folder to use the commands.
+
+**If you have existing BrainLift files**, `/bl:init` will detect them and offer to move them into `lifts/` (and any companion `.log.md` files into `logs/`).
+
+### 2. Why this structure?
+
+- **`lifts/`** keeps BrainLift files separate from logs, READMEs, and other markdown. `ls lifts/` shows exactly your BrainLifts — nothing else.
+- **`logs/`** tracks how each BrainLift evolves over time without doubling the file count in your working directory.
+- **`sources/`** is for future use — the plugin will optionally save fetched source content here so you have a local copy if URLs break.
+- **`CLAUDE.md`** serves double duty: it tells Claude Code about your workspace (loaded as project instructions when you `cd` in), and it contains a marker (`<!-- brainlift-root -->`) that the plugin uses to find your BrainLifts automatically.
+
+### 3. How discovery works
+
+The plugin finds your BrainLifts automatically through a three-step cascade:
+
+1. **If you're in your BrainLift folder** (or a subfolder): the plugin detects `CLAUDE.md` and finds `lifts/` directly.
+2. **If you're in a different project**: the plugin reads `~/.brainlift` to find your workspace.
+3. **If neither exists**: the plugin asks you once and offers to save the location for next time.
+
+You never have to re-specify the path after initial setup.
 
 ---
 
@@ -227,11 +271,12 @@ Every BrainLift gets a companion `.log.md` file (e.g., `ai-agents.log.md` alongs
 
 ## Suggested Workflow
 
-1. **Start with `/bl:update`** — Add 3-5 sources to build your Knowledge Tree foundation
-2. **Use `/bl:query`** to explore patterns — "What themes are emerging?" "Where do my sources disagree?"
-3. **Save brainstormed insights** when cross-source patterns resonate
-4. **Run `/bl:lint` weekly** — catch evidence gaps, stale content, and token bloat before they accumulate
-5. **Repeat** — every source you add and every question you ask makes the BrainLift richer
+1. **Run `/bl:init`** in your BrainLift folder to set up the workspace
+2. **Start with `/bl:update`** — Add 3-5 sources to build your Knowledge Tree foundation
+3. **Use `/bl:query`** to explore patterns — "What themes are emerging?" "Where do my sources disagree?"
+4. **Save brainstormed insights** when cross-source patterns resonate
+5. **Run `/bl:lint` weekly** — catch evidence gaps, stale content, and token bloat before they accumulate
+6. **Repeat** — every source you add and every question you ask makes the BrainLift richer
 
 ## Plugin Structure
 
@@ -239,6 +284,7 @@ Every BrainLift gets a companion `.log.md` file (e.g., `ai-agents.log.md` alongs
 brainlift-plugin/
 ├── plugins/bl/
 │   ├── skills/
+│   │   ├── init/SKILL.md          # Workspace setup
 │   │   ├── update/SKILL.md        # Add sources workflow
 │   │   ├── query/SKILL.md         # Query + compound explorations
 │   │   └── lint/SKILL.md          # Health check + brainstorm fixes
@@ -248,6 +294,7 @@ brainlift-plugin/
 │   │   ├── brainlift-reader.md    # Parses BrainLift file structure
 │   │   └── evidence-auditor.md    # 27-check health analysis
 │   └── infrastructure/
+│       ├── discovery.md           # BrainLift discovery protocol
 │       └── log-format.md          # Change log specification
 └── README.md
 ```

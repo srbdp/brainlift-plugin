@@ -1,15 +1,15 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "srbdp-brainlift",
-  "description": "BrainLifting toolkit for Claude Code — add sources, query knowledge, audit health",
+  "description": "BrainLifting toolkit for Claude Code — workspace setup, add sources, query knowledge, audit health",
   "owner": {
     "name": "Ben Pizzacalla"
   },
   "plugins": [
     {
       "name": "bl",
-      "description": "BrainLift maintenance toolkit — add sources, query knowledge, audit health",
-      "version": "2.0.0",
+      "description": "BrainLift maintenance toolkit — workspace setup, add sources, query knowledge, audit health",
+      "version": "2.1.0",
       "author": {
         "name": "Ben Pizzacalla"
       },

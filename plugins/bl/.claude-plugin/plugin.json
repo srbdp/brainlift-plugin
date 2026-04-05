@@ -1,7 +1,7 @@
 {
   "name": "bl",
-  "version": "2.0.0",
-  "description": "BrainLift maintenance toolkit — add sources, query knowledge, audit health",
+  "version": "2.1.0",
+  "description": "BrainLift maintenance toolkit — workspace setup, add sources, query knowledge, audit health",
   "author": {
     "name": "Ben Pizzacalla"
   }

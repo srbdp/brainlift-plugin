@@ -2,15 +2,25 @@
 
 ## Overview
 
-Each BrainLift file has a companion log file that tracks changes over time. The log lives as a sibling file (not inline) to avoid bloating the BrainLift's token count.
+Each BrainLift file has a companion log file that tracks changes over time. The log lives in a separate directory (not inline) to avoid bloating the BrainLift's token count and cluttering the lifts folder.
 
-## File Naming
+## File Location
 
+**Recommended (after `/bl:init`)**:
 ```
-[brainlift-filename].log.md
+[brainlift-root]/logs/[brainlift-filename].log.md
 ```
 
-Example: If the BrainLift is `ai-agents.md`, the log is `ai-agents.log.md`.
+Example: If the BrainLift is `lifts/ai-agents.md`, the log is `logs/ai-agents.log.md`.
+
+**Legacy fallback (flat folder, no `logs/` directory)**:
+```
+[brainlift-dir]/[brainlift-filename].log.md
+```
+
+The log is a sibling of the BrainLift file (e.g., `ai-agents.md` and `ai-agents.log.md` in the same folder).
+
+**Resolution rule**: When a skill needs to write a log entry, check if `[brainlift_root]/logs/` exists. If yes, write there. If no, write as a sibling of the BrainLift file.
 
 ## Entry Format
 

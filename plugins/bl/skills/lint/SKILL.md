@@ -34,8 +34,14 @@ Lint is the BrainLift equivalent. It catches structural problems, evidence gaps,
 
 **If path provided in `$ARGUMENTS`**: Use it directly.
 
-**If no path provided**: Find BrainLift files and let user choose:
-1. Use Glob to find `*.md` files (exclude `*.log.md`)
+**If no path provided**: Find BrainLift files using the Discovery Protocol (see `infrastructure/discovery.md`):
+1. Walk up from `$CWD` looking for `CLAUDE.md` with `<!-- brainlift-root -->` marker
+2. If not found, check `~/.brainlift` pointer file for the workspace path
+3. If neither exists, ask the user for a directory path (offer to save as `~/.brainlift` for next time)
+4. Resolve lifts directory: `[root]/lifts/` if it exists, else `[root]/` as fallback
+
+Then find BrainLift files and let user choose:
+1. Glob `[lifts_dir]/*.md` (exclude `*.log.md`)
 2. Read each file's Purpose section
 3. Present list:
    ```
