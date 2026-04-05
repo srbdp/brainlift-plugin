@@ -88,6 +88,23 @@ Then find BrainLift files and let user choose:
 
 ---
 
+### Phase 1B: Link Validation (v2.2)
+
+After parsing and auditing, run link-specific checks using the brainlift-reader's Evidence Links output:
+
+1. **Parse all `Evidence:` lines** from the brainlift-reader report
+2. **Validate each wikilink target**:
+   - For `[[filename#heading]]`: Check that the heading exists in the target file
+   - For `[[filename]]`: Check that the file exists in `lifts/`
+3. **Check evidence completeness**:
+   - Every SPOV with `Evidence:` should link to 2+ Insights
+   - Every Insight with `Evidence:` should link to 1+ Sources
+4. **Detect orphans** (from brainlift-reader's Orphan Detection section):
+   - Orphan sources: not referenced by any Insight's Evidence line
+   - Orphan insights: not referenced by any SPOV's Evidence line
+   - Orphan SPOVs: no Evidence line at all
+5. **Check index staleness**: If `[root]/index.md` exists, compare its `<!-- last-updated: -->` timestamp against the BrainLift file's modification time. Flag if the BrainLift is newer than the index.
+
 ### Phase 2: Report
 
 Present the health report in a scannable format:
@@ -141,6 +158,30 @@ Completeness       [████████░░░░] [N]/10
 - Insight #1: "[text]" → Evidence from [Source A], [Source B] ✓
 - Insight #2: "[text]" → Single-source evidence ⚠️
 - Insight #3: "[text]" → No traceable DOK1-2 support ✗
+
+---
+
+## Link Integrity (v2.2)
+
+**Anchor IDs**: [Present / Not present — migration available via Option F]
+
+**Evidence Links:**
+- SPOV-1: 2 insight links ✓
+- SPOV-2: 2 insight links ✓
+- SPOV-3: 0 insight links ✗ (no Evidence line)
+- I-1: 2 source links ✓
+- I-2: 1 source link ⚠️ (single-source)
+- I-3: 0 source links ✗ (no Evidence line)
+
+**Orphan Detection:**
+- [N] sources not referenced by any Insight: [list]
+- [N] insights not referenced by any SPOV: [list]
+
+**Broken Links:** [N found]
+- [[file#I-5]] referenced in SPOV-2 but I-5 does not exist
+
+**Index Status:**
+- [Up to date / Stale (BrainLift modified [date], index last updated [date]) / Missing]
 ```
 
 **Adapt the report to BrainLift maturity**:
@@ -172,8 +213,18 @@ D. **Flag stale content** — I'll identify specific sources and claims
 E. **Run a deeper check** — Ask me specific questions about any
    finding in the report
 
+F. **Add evidence links** — I'll add anchor IDs (SPOV-N, I-N) and
+   Evidence: wikilinks to make your evidence chain machine-readable
+   and enable Obsidian graph view
+
+G. **Rebuild index** — Regenerate index.md from your BrainLift files
+
 Or just take the report and work on it yourself — that's fine too.
 ```
+
+Options F and G are shown only when relevant:
+- **Option F** appears when the BrainLift lacks anchor IDs or Evidence links
+- **Option G** appears when index.md is missing or stale
 
 **If user chooses A (Evidence gaps)**:
 
@@ -225,10 +276,65 @@ Based on your existing sources, the closest evidence I found:
 - For each, suggest: keep (still foundational), replace (find newer source), or remove
 - If replacing, suggest search terms for finding newer sources
 
+**If user chooses F (Add evidence links)**:
+
+This is the migration helper for existing BrainLifts. Two sub-steps:
+
+**Step F1: Add anchor IDs** (if missing):
+- Scan all SPOVs and assign `SPOV-1`, `SPOV-2`, etc. in order of appearance
+- Scan all Insights and assign `I-1`, `I-2`, etc. in order of appearance
+- Preview the changes:
+  ```
+  I'll add anchor IDs to your SPOVs and Insights:
+  
+  DOK4 - SPOV:
+  - "Infrastructure-level actor models..." → **SPOV-1**:
+  - "Edge-native AI agents..." → **SPOV-2**:
+  
+  DOK3 - Insights:
+  - "The single-threaded concurrency..." → **I-1**:
+  - "Cost structures for edge..." → **I-2**:
+  
+  This is a formatting change only — no content is modified. Approve?
+  ```
+
+**Step F2: Add Evidence lines** (after anchor IDs exist):
+- Use the evidence-auditor's prose-based evidence chain analysis to determine which Insights support which SPOVs, and which Sources support which Insights
+- Generate `Evidence:` wikilinks for each SPOV and Insight
+- Preview all proposed Evidence lines:
+  ```
+  Based on my analysis of your evidence chains:
+  
+  SPOV-1: "Infrastructure-level actor models..."
+    Evidence: [[filename#I-1]], [[filename#I-3]]
+  
+  SPOV-2: "Edge-native AI agents..."
+    Evidence: [[filename#I-2]], [[filename#I-4]]
+  
+  I-1: "The single-threaded concurrency..."
+    Evidence: [[filename#Durable Objects Deep Dive - Rita Kozlov (2026-02)]]
+  
+  I-2: "Cost structures for edge..."
+    Evidence: [[filename#Edge Cost Analysis - Priya Sharma (2026-01)]]
+  
+  Review each and approve, edit, or reject.
+  ```
+- The user reviews each Evidence line — some may be wrong if the prose analysis misidentified connections
+- Apply only approved Evidence lines
+
+**If user chooses G (Rebuild index)**:
+
+Trigger a full index rebuild:
+1. Parse all BrainLift files in `lifts/` via brainlift-reader
+2. Generate complete `index.md` following `infrastructure/index-format.md`
+3. Write to `[root]/index.md`
+4. Show summary: "[N] BrainLifts indexed, [N] sources, [N] evidence chains mapped"
+
 **After any changes**:
 1. Apply edits to BrainLift using Edit tool
 2. Show git diff for review
-3. Append log entry:
+3. If evidence links were added (Option F) or index was rebuilt (Option G), trigger an index update
+4. Append log entry:
    ```markdown
    ## [YYYY-MM-DD] lint | Health check
    

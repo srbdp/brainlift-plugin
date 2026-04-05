@@ -171,15 +171,15 @@ Note any user thoughts provided in $ARGUMENTS - these inform later phases.
 
 ### Phase 2: BrainLift Routing
 
-**Find BrainLift files** using the Discovery Protocol (see `infrastructure/discovery.md`):
+**Find BrainLift workspace** using the Discovery Protocol (see `infrastructure/discovery.md`):
 1. Walk up from `$CWD` looking for `CLAUDE.md` with `<!-- brainlift-root -->` marker
 2. If not found, check `~/.brainlift` pointer file for the workspace path
 3. If neither exists, ask the user for a directory path (offer to save as `~/.brainlift` for next time)
 4. Resolve lifts directory: `[root]/lifts/` if it exists, else `[root]/` as fallback
 
-**Find candidate BrainLifts**:
-1. Glob `[lifts_dir]/*.md` (exclude `*.log.md`)
-2. Read each file's opening section to extract **Purpose** (In Scope / Out of Scope)
+**Find candidate BrainLifts** (index-first routing):
+1. **Fast path**: Check if `[root]/index.md` exists with the `<!-- brainlift-index: auto-generated` marker. If yes, read the `## BrainLifts` catalog section — it contains each BrainLift's Purpose, stats, and categories in a single file. Use this for routing instead of opening every BrainLift file.
+2. **Fallback**: If no index.md exists, fall back to v2.1 behavior — glob `[lifts_dir]/*.md` (exclude `*.log.md`), read each file's opening section to extract Purpose.
 3. Score content relevance against each BrainLift's scope
 4. Present ranked matches:
 
@@ -411,6 +411,16 @@ Looking at existing sources in **[Category]**:
 Replace anything, or keep all?
 ```
 
+**Cross-BrainLift relevance** (v2.2 enhancement):
+If `index.md` exists, scan the selected DOK1 facts against the Source Registry and Evidence Graph of *other* BrainLifts. If facts are relevant to topics in a different BrainLift:
+```
+Cross-BrainLift note: This source's facts about [topic] are also relevant
+to your **[[other-brainlift]]** BrainLift (Category: [category]).
+
+This is just a flag — the source stays in [[current-brainlift]].
+```
+These flags are persisted in the index.md Cross-BrainLift Connections section during Phase 6.
+
 **Expert detection** (Karpathy enhancement):
 ```
 Should the author be added to your Experts section?
@@ -485,9 +495,13 @@ Approve these changes?
 
 3. **Update DOK3 insights** if any were revised or added
    - Edit existing insight text or insert new insights
+   - **Assign anchor ID**: If the BrainLift uses anchor IDs (has `I-N` prefixes), assign the next available ID to new insights. Check the brainlift-reader's `Highest Insight ID` and increment. Format: `**I-[N]**: [insight text]`
+   - **Add Evidence line**: For new or revised insights, add an `Evidence:` line with wikilinks pointing to the supporting sources: `Evidence: [[filename#Source Title - Author (Date)]]`
 
 4. **Update DOK4 SPOVs** if any were revised
    - Edit existing SPOV text
+   - **Assign anchor ID**: Same as insights — use `SPOV-[N]` prefix with next available ID
+   - **Add/update Evidence line**: `Evidence: [[filename#I-N]], [[filename#I-N]]` linking to supporting insights
 
 5. **Add expert entry** if applicable
    - Insert in the Experts section
@@ -511,6 +525,20 @@ After successful commit, append to the log file. Resolve log path per `infrastru
 ```
 
 If DOK3/4 were also revised, append additional log entries for those changes.
+
+**Update index.md** (v2.2 enhancement):
+After all edits are applied, perform an incremental index update (see `infrastructure/index-format.md`):
+1. Re-parse the modified BrainLift via brainlift-reader to get updated stats, evidence links, and source list
+2. Read existing `index.md`
+3. Update the BrainLift's catalog entry (source count, insight count, SPOV count, last updated date)
+4. Update the Evidence Graph section for this BrainLift (SPOV -> Insight -> Source chains)
+5. Add the new source to the Source Registry table
+6. Add any Cross-BrainLift Connections flagged in Phase 5
+7. Recalculate Workspace Stats
+8. Update the `<!-- last-updated: -->` timestamp
+9. Write the updated `index.md`
+
+If `index.md` does not exist, skip this step (the user can generate it later via `/bl:init` or `/bl:lint`).
 
 **Suggest next steps**:
 ```

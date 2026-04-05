@@ -57,15 +57,20 @@ Parse `$ARGUMENTS` for the user's question.
 
 **If no question provided**: Ask the user what they want to explore.
 
-**Find BrainLift files** using the Discovery Protocol (see `infrastructure/discovery.md`):
+**Find BrainLift workspace** using the Discovery Protocol (see `infrastructure/discovery.md`):
 1. Walk up from `$CWD` looking for `CLAUDE.md` with `<!-- brainlift-root -->` marker
 2. If not found, check `~/.brainlift` pointer file for the workspace path
 3. If neither exists, ask the user for a directory path (offer to save as `~/.brainlift` for next time)
 4. Resolve lifts directory: `[root]/lifts/` if it exists, else `[root]/` as fallback
 
-**Find the right BrainLift**:
-1. Glob `[lifts_dir]/*.md` (exclude `*.log.md`)
-2. Read each file's opening to extract **Purpose** (In Scope / Out of Scope)
+**Find the right BrainLift** (index-first navigation):
+1. **Fast path**: Check if `[root]/index.md` exists with the `<!-- brainlift-index: auto-generated` marker. If yes, read it to get:
+   - The BrainLifts catalog (Purpose, stats, categories for each BrainLift) for routing
+   - The Evidence Graph (which BrainLifts have relevant SPOVs/Insights on what topics)
+   - The Source Registry (which authors and sources exist where)
+   - Cross-BrainLift Connections (topic overlap between BrainLifts)
+   Use this data to score relevance more precisely — not just Purpose match, but whether the BrainLift has evidence on the question's topic.
+2. **Fallback**: If no index.md exists, glob `[lifts_dir]/*.md` (exclude `*.log.md`), read each file's opening to extract Purpose.
 3. Score relevance of the question against each BrainLift's scope
 4. Present ranked matches:
 
@@ -164,6 +169,20 @@ from multiple DOK levels. Every claim cites its source.]
 
 **Important**: Clearly distinguish between what the BrainLift's evidence supports vs. general knowledge. If the BrainLift is thin on a topic, say so — don't fill in with external knowledge unless the user asks.
 
+**Citation format** (v2.2): When the BrainLift has anchor IDs and Evidence links, use wikilink-style citations:
+```
+**Evidence used:**
+- [[brainlift-name#Source Title - Author (Date)|Source Title]] DOK1: [concept]
+- [[brainlift-name#I-N|Insight #N]]: [synthesis]
+- [[brainlift-name#SPOV-N|SPOV #N]]: [position]
+```
+
+**Cross-BrainLift suggestions** (v2.2): If `index.md` shows Cross-BrainLift Connections relevant to this question, suggest searching the other BrainLift:
+```
+Note: Your index shows a cross-BrainLift connection — [[other-brainlift#I-N]]
+covers a related topic. Want me to search [[other-brainlift]] too?
+```
+
 ---
 
 ### Phase 4: Compound
@@ -234,7 +253,8 @@ Would you like to save anything from this exploration?
 
 **After any save**: 
 1. Apply edits to the BrainLift file using Edit tool
-2. Append a log entry. Resolve log path per `infrastructure/log-format.md`: use `[brainlift_root]/logs/[name].log.md` if `logs/` exists, else write as sibling of the BrainLift file:
+2. **Assign anchor IDs and Evidence links** (v2.2): If the BrainLift uses anchor IDs and new DOK3/4 content was added, assign the next available ID (`I-N` or `SPOV-N`) and add an `Evidence:` line with wikilinks to supporting sources/insights. See `infrastructure/linking.md` for format.
+3. Append a log entry. Resolve log path per `infrastructure/log-format.md`: use `[brainlift_root]/logs/[name].log.md` if `logs/` exists, else write as sibling of the BrainLift file:
    ```markdown
    ## [YYYY-MM-DD] query | "[question summary]"
    
@@ -243,6 +263,7 @@ Would you like to save anything from this exploration?
    - **Changes**: [what was saved — Initial Insight on Source X, new DOK3 #N, etc.]
    - **Rationale**: [user's reasoning if provided]
    ```
+4. **Update index.md** (v2.2): If `index.md` exists and DOK3/4 content was added or revised, perform an incremental index update — re-parse the BrainLift, update its catalog stats and Evidence Graph section, recalculate Workspace Stats. See `infrastructure/index-format.md` for the incremental update procedure.
 
 ---
 

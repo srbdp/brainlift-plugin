@@ -21,16 +21,20 @@ You will receive:
 
 ### 1. Evidence Chain (weight: 25%)
 
-Check that the DOK support hierarchy holds:
+Check that the DOK support hierarchy holds. **When Evidence links exist** (see `infrastructure/linking.md`), use them as the primary chain — they are machine-readable and authoritative. Supplement with prose-based analysis to catch connections the links may have missed.
 
 | Check | What to Look For | Severity |
 |-------|-----------------|----------|
-| DOK4 without DOK3 support | Each SPOV needs thematic support from 2+ DOK3 insights. Read each SPOV, then check if 2+ insights plausibly support it. | Critical |
-| DOK3 without DOK1-2 support | Each insight should reference patterns that appear in DOK1-2 evidence. Check if the insight's claims have grounding in the Knowledge Tree. | Critical |
+| DOK4 without DOK3 support | Each SPOV needs thematic support from 2+ DOK3 insights. If `Evidence:` links exist, check they reference 2+ `I-N` targets. If no links, fall back to prose analysis. | Critical |
+| DOK3 without DOK1-2 support | Each insight should reference patterns that appear in DOK1-2 evidence. If `Evidence:` links exist, check they reference source headings. If no links, fall back to prose analysis. | Critical |
 | DOK2 without DOK1 | Each source's DOK2 summary should synthesize its own DOK1 facts. Flag sources with DOK2 but no DOK1. | Warning |
 | Orphan DOK1s | DOK1 facts in sources whose DOK2 doesn't reference them. Not critical — just signals extraction without synthesis. | Suggestion |
-| Single-source DOK3 | Insights that only draw from one source aren't truly cross-source synthesis. | Warning |
+| Single-source DOK3 | Insights that only draw from one source aren't truly cross-source synthesis. Check via `Evidence:` links (single source reference) or prose analysis. | Warning |
 | Unsupported claims | DOK3/4 statements that make specific claims (numbers, timelines, comparisons) without traceable DOK1-2 evidence. | Warning |
+| Missing evidence links | SPOVs or Insights without `Evidence:` wikilinks. Not critical for pre-migration BrainLifts, but signals the evidence chain isn't machine-readable yet. | Suggestion |
+| Broken evidence links | `Evidence:` line references a heading that doesn't exist in the target file (e.g., `[[file#I-5]]` but I-5 was deleted). | Warning |
+| Evidence link mismatch | `Evidence:` line claims support from specific insights/sources, but prose analysis finds the connection is weak or nonexistent. | Warning |
+| Orphan sources | Sources in the Knowledge Tree not referenced by any Insight's `Evidence:` line. Not an error — may indicate synthesis opportunity. | Suggestion |
 
 **Scoring**: Start at 10. -2 per critical, -1 per warning, -0.5 per suggestion. Floor at 0.
 
@@ -126,24 +130,43 @@ Return this exact structure:
 - [Suggestion description]
 
 ## Evidence Chain Details
-[For each DOK4 SPOV, list which DOK3 insights support it]
-- **SPOV #1**: "[text]"
-  - Supported by: Insight #[N] ("[snippet]"), Insight #[N] ("[snippet]")
+
+### From Evidence Links (machine-readable)
+[If BrainLift has Evidence: wikilinks, use them as primary chain]
+- **SPOV-[N]**: "[text]"
+  - Evidence links: [[file#I-N]], [[file#I-N]]
+  - I-[N] links to: [[file#Source A]], [[file#Source B]]
+  - Full chain verified: [✓ / ✗ with explanation]
+
+[If no Evidence links exist:]
+_BrainLift does not have Evidence: links yet. Using prose-based analysis._
+
+### From Prose Analysis
+[For each DOK4 SPOV, list which DOK3 insights support it based on content analysis]
+- **SPOV-[N]**: "[text]"
+  - Supported by: Insight [N] ("[snippet]"), Insight [N] ("[snippet]")
   - Status: [Supported / Weak / Unsupported]
-- **SPOV #2**: ...
+- **SPOV-[N]**: ...
 
 [For each DOK3 Insight, list which sources support it]
-- **Insight #1**: "[text]"
+- **I-[N]**: "[text]"
   - Evidence from: [Source A] DOK1 #[N], [Source B] DOK2
   - Status: [Supported / Weak / Unsupported / Single-source]
 
+### Prose-Link Discrepancies
+[If both Evidence links and prose analysis exist, note where they disagree]
+- SPOV-[N]: Evidence links claim support from I-[N], but prose analysis finds weak connection
+- I-[N]: Prose analysis suggests connection to [Source C] not in Evidence links — consider adding
+
 ## Brainstormed Fixes
 [For evidence chain gaps, suggest candidate DOK3 insights or DOK4 refinements]
-- **For SPOV #[N]** (needs more DOK3 support):
+[Include Evidence: wikilinks in brainstormed candidates so they're ready to insert]
+- **For SPOV-[N]** (needs more DOK3 support):
   Candidate insight based on your sources: "[draft insight with evidence citations]"
+  Evidence: [[filename#Source A - Author (Date)]], [[filename#Source B - Author (Date)]]
 - **For sources on [topic]** (no synthesizing DOK3):
   Pattern I see: "[draft insight]"
-  Supporting evidence: [list DOK1-2 items]
+  Evidence: [[filename#Source C - Author (Date)]], [[filename#Source D - Author (Date)]]
 ```
 
 ## Scoring Formula

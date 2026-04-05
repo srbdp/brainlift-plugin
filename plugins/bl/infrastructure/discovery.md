@@ -68,7 +68,20 @@ Once the lifts directory is resolved, the existing routing logic takes over:
 | Lifts directory | `[root]/lifts/` | `[root]/` |
 | Logs directory | `[root]/logs/` | Same as lifts (sibling files) |
 | Sources directory | `[root]/sources/` | N/A |
+| Index file | `[root]/index.md` | N/A (generated on first init/lint) |
 | Pointer file | `~/.brainlift` | N/A |
+
+## Index Resolution
+
+After discovering the BrainLift root, check for the index file:
+
+1. Check if `[root]/index.md` exists
+2. If it exists, read lines 1-2. If line 1 contains `<!-- brainlift-index: auto-generated`, this is a plugin-managed index — use it as the navigation layer
+3. If it does not exist, skills fall back to the v2.1 behavior of globbing and reading each BrainLift file directly
+
+**When to use the index**: Skills that need to route to a BrainLift (`/bl:update` Phase 2, `/bl:query` Phase 1) should read the index's BrainLifts catalog section for fast routing instead of parsing every BrainLift file's Purpose section. The index provides Purpose, stats, and categories in a single read.
+
+**When the index is stale or missing**: Fall back to globbing `[lifts_dir]/*.md` and reading each file's Purpose section directly. This is the v2.1 behavior and always works.
 
 ## Skill-Specific Notes
 

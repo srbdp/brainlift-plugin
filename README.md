@@ -61,6 +61,7 @@ This creates:
 ```
 ~/brainlifts/
 ├── CLAUDE.md       # Workspace config (Claude Code loads this automatically)
+├── index.md        # Auto-generated catalog, evidence graph, source registry
 ├── lifts/          # Your BrainLift .md files go here
 ├── logs/           # Change logs (auto-managed by the plugin)
 └── sources/        # Raw source content (optional, for URL rot insurance)
@@ -76,6 +77,7 @@ It also saves a pointer at `~/.brainlift` so the plugin can find your workspace 
 - **`logs/`** tracks how each BrainLift evolves over time without doubling the file count in your working directory.
 - **`sources/`** is for future use — the plugin will optionally save fetched source content here so you have a local copy if URLs break.
 - **`CLAUDE.md`** serves double duty: it tells Claude Code about your workspace (loaded as project instructions when you `cd` in), and it contains a marker (`<!-- brainlift-root -->`) that the plugin uses to find your BrainLifts automatically.
+- **`index.md`** is auto-generated — the plugin writes it, you read it. It catalogs all your BrainLifts, maps the evidence graph (which SPOVs are supported by which Insights, which draw from which Sources), and lists every source across all BrainLifts. The plugin reads this first for fast navigation. If you use Obsidian, the wikilinks in `index.md` light up the graph view.
 
 ### 3. How discovery works
 
@@ -223,7 +225,9 @@ Suggestions:
 | **Structural** | Sources missing URLs, DOK1, or DOK2? Knowledge Tree needs reorganizing? |
 | **Completeness** | Source authors not tracked as Experts? Echo chamber (all same perspective)? Absolute claims without exceptions? |
 
-After the report, the plugin offers to help fix issues — brainstorming DOK3 insights to fill evidence gaps, suggesting Knowledge Tree restructuring, or identifying stale sources to replace. If you've run lint before, it compares scores to show progress.
+After the report, the plugin offers to help fix issues — brainstorming DOK3 insights to fill evidence gaps, suggesting Knowledge Tree restructuring, identifying stale sources to replace, adding machine-readable evidence links to enable Obsidian graph view, or rebuilding the workspace index. If you've run lint before, it compares scores to show progress.
+
+**New in v2.2** — Lint also checks **link integrity**: broken evidence links, orphan sources not referenced by any insight, and whether your `index.md` is up to date. It offers migration helpers to add anchor IDs (`SPOV-1`, `I-1`) and `Evidence:` wikilinks to existing BrainLifts.
 
 ---
 
@@ -276,17 +280,19 @@ Every BrainLift gets a companion `.log.md` file (e.g., `ai-agents.log.md` alongs
 brainlift-plugin/
 ├── plugins/bl/
 │   ├── skills/
-│   │   ├── init/SKILL.md          # Workspace setup
+│   │   ├── init/SKILL.md          # Workspace setup (idempotent)
 │   │   ├── update/SKILL.md        # Add sources workflow
 │   │   ├── query/SKILL.md         # Query + compound explorations
 │   │   └── lint/SKILL.md          # Health check + brainstorm fixes
 │   ├── agents/
 │   │   ├── content-fetcher.md     # Fetches tweets, articles, videos, PDFs
 │   │   ├── dok-extractor.md       # Extracts DOK1-2, brainstorms DOK3
-│   │   ├── brainlift-reader.md    # Parses BrainLift file structure
-│   │   └── evidence-auditor.md    # 27-check health analysis
+│   │   ├── brainlift-reader.md    # Parses BrainLift file structure + evidence links
+│   │   └── evidence-auditor.md    # Health analysis + link integrity
 │   └── infrastructure/
 │       ├── discovery.md           # BrainLift discovery protocol
+│       ├── index-format.md        # index.md schema and maintenance
+│       ├── linking.md             # Wikilink conventions and anchor IDs
 │       └── log-format.md          # Change log specification
 └── README.md
 ```
