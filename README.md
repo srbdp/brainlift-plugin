@@ -16,7 +16,11 @@ DOK4 - SPOVs (your expert positions — "spiky points of view")
 DOK3 - Insights (surprising patterns you've found across sources)
 ────── your expertise is above / external information is below ──────
 Experts (people worth following)
-Knowledge Tree (organized sources with extracted facts and summaries)
+Knowledge Tree
+  └─ Sources
+      ├─ DOK2 - Summaries (patterns synthesized from a source's facts)
+      ├─ DOK1 - Facts (specific, verifiable details extracted from the source)
+      └─ Link to original content
 ```
 
 Each layer is supported by the one below it. Your SPOVs are backed by insights, which are backed by facts extracted from real sources. No unsupported claims.
