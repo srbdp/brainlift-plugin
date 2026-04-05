@@ -1,4 +1,5 @@
 ---
+name: query
 description: Ask questions against your BrainLift — get cited answers, discover gaps, and compound your explorations back into knowledge
 argument-hint: [question about your domain]
 ---

@@ -1,4 +1,5 @@
 ---
+name: init
 description: Set up a BrainLift workspace in the current directory — creates folder structure, config, and pointer file
 argument-hint:
 ---

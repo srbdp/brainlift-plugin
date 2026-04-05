@@ -1,4 +1,5 @@
 ---
+name: update
 description: Add new content to an existing BrainLift - paste a URL and your thoughts, get guided through the update
 argument-hint: <url> [your thoughts about this content]
 ---

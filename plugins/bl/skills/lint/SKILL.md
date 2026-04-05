@@ -1,4 +1,5 @@
 ---
+name: lint
 description: Health-check your BrainLift — audit evidence chains, token counts, semantic quality, freshness, and completeness
 argument-hint: [path to brainlift file]
 ---
