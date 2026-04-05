@@ -32,24 +32,16 @@ Each layer is supported by the one below it. Your SPOVs are backed by insights, 
 
 ## Install
 
-### From the marketplace
+In any Claude Code session, run these two commands:
 
 ```
-/marketplace add srbdp-brainlift --source github --repo srbdp/brainlift-plugin
+/plugin marketplace add srbdp/brainlift-plugin
 /plugin install bl@srbdp-brainlift
 ```
 
-### Manual install
+The first command adds the plugin marketplace from GitHub. The second installs the `bl` plugin from it. After that, the slash commands (`/bl:init`, `/bl:update`, `/bl:query`, `/bl:lint`) are available in every Claude Code session.
 
-```bash
-# Option 1: Point Claude Code at the plugin directory
-claude --plugin-dir ./brainlift-plugin/plugins/bl
-
-# Option 2: Copy to your global plugins
-cp -r plugins/bl ~/.claude/plugins/bl
-```
-
-After installing, the slash commands (`/bl:init`, `/bl:update`, `/bl:query`, `/bl:lint`) will be available in any Claude Code session.
+To update the plugin later, Claude Code will check for updates automatically. You can also force an update by re-running the install command.
 
 ---
 
